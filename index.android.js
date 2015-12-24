@@ -10,25 +10,51 @@ var {
   StyleSheet,
   Text,
   View,
+  Component,
+  PullToRefreshViewAndroid,
 } = React;
 
-var reactNativeParallaxScrollView = React.createClass({
-  render: function() {
+import Talks from './Talks';
+
+//var reactNativeParallaxScrollView = React.createClass({
+
+class reactNativeParallaxScrollView extends Component {
+  constructor(props) {
+    super(props);
+  }
+
+  shouldComponentUpdate() {
+    return false;
+  }
+
+  render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.android.js
-        </Text>
-        <Text style={styles.instructions}>
-          Shake or press menu button for dev menu
-        </Text>
-      </View>
+      <PullToRefreshViewAndroid
+        ref={ref => { this._pullToRefresh = ref }}
+        style={{ flex: 1 }}
+        colors={['#000', '#999', '#fff']}
+        progressBackgroundColor={'#fff'}
+        enabled={true}
+        refreshing={false}
+        onRefresh={() => {
+          this._pullToRefresh.getInnerViewNode().setNativeProps({ refreshing: true });
+          setTimeout(() => {
+            this._pullToRefresh.getInnerViewNode().setNativeProps({ refreshing: false });
+          }, 5000);
+        }}>
+        <Talks
+          key="talks"
+          onScroll={(e) => {
+            if (e.nativeEvent.contentOffset.y <= 0) {
+              this._pullToRefresh.getInnerViewNode().setNativeProps({ enabled: true });
+            } else {
+              this._pullToRefresh.getInnerViewNode().setNativeProps({ enabled: false });
+            }
+          }}/>
+      </PullToRefreshViewAndroid>
     );
   }
-});
+};
 
 var styles = StyleSheet.create({
   container: {
